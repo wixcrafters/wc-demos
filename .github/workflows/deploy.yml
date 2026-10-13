@@ -26,10 +26,6 @@ jobs:
             echo "has_project=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Install dependencies
-        if: steps.check.outputs.has_project == 'true'
-        run: npm install
-
       - name: Read client config
         if: steps.check.outputs.has_project == 'true'
         id: config
@@ -37,17 +33,12 @@ jobs:
           echo "slug=$(node -e "console.log(require('./client.config.json').slug)")" >> $GITHUB_OUTPUT
           echo "clientName=$(node -e "console.log(require('./client.config.json').clientName)")" >> $GITHUB_OUTPUT
           echo "clientEmail=$(node -e "console.log(require('./client.config.json').clientEmail)")" >> $GITHUB_OUTPUT
-          echo "siteUrl=$(node -e "console.log(require('./client.config.json').siteUrl)")" >> $GITHUB_OUTPUT
-
-      - name: Build
-        if: steps.check.outputs.has_project == 'true'
-        run: npm run build
 
       - name: Deploy to Vercel
         if: steps.check.outputs.has_project == 'true'
         run: |
           npm install -g vercel
-          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} dist/ --yes
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
         env:
           VERCEL_ORG_ID: team_c8kFcXdeNjCsG0JoLm9fR4K8
           VERCEL_PROJECT_ID: prj_M4qTz1BQjZGjkeBUdLZG9Sz1q9fO
