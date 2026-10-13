@@ -47,8 +47,8 @@ jobs:
         if: steps.check.outputs.has_project == 'true'
         run: |
           npm install -g vercel
-          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} dist/ \
-            --name wc-demos \
+          vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }} dist/ \
+            --yes \
             --yes
         env:
           VERCEL_ORG_ID: team_c8kFcXdeNjCsG0JoLm9fR4K8
