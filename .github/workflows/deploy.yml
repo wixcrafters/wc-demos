@@ -2,7 +2,7 @@ name: Build, Deploy & Notify
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
 
 jobs:
   deploy:
