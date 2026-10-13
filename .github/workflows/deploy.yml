@@ -47,9 +47,7 @@ jobs:
         if: steps.check.outputs.has_project == 'true'
         run: |
           npm install -g vercel
-          vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }} dist/ \
-            --yes \
-            --yes
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} dist/ --yes
         env:
           VERCEL_ORG_ID: team_c8kFcXdeNjCsG0JoLm9fR4K8
           VERCEL_PROJECT_ID: prj_M4qTz1BQjZGjkeBUdLZG9Sz1q9fO
