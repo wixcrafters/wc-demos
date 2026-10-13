@@ -17,10 +17,21 @@ jobs:
         with:
           node-version: 20
 
+      - name: Check if React project exists
+        id: check
+        run: |
+          if [ -f "package.json" ]; then
+            echo "has_project=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_project=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install dependencies
+        if: steps.check.outputs.has_project == 'true'
         run: npm install
 
       - name: Read client config
+        if: steps.check.outputs.has_project == 'true'
         id: config
         run: |
           echo "slug=$(node -e "console.log(require('./client.config.json').slug)")" >> $GITHUB_OUTPUT
@@ -29,9 +40,11 @@ jobs:
           echo "siteUrl=$(node -e "console.log(require('./client.config.json').siteUrl)")" >> $GITHUB_OUTPUT
 
       - name: Build
+        if: steps.check.outputs.has_project == 'true'
         run: npm run build
 
       - name: Deploy to Vercel
+        if: steps.check.outputs.has_project == 'true'
         run: |
           npm install -g vercel
           vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} dist/ \
@@ -42,6 +55,7 @@ jobs:
           VERCEL_PROJECT_ID: prj_M4qTz1BQjZGjkeBUdLZG9Sz1q9fO
 
       - name: Update Wix CMS
+        if: steps.check.outputs.has_project == 'true'
         run: |
           curl -s -X PATCH \
             "https://wixcrafter.wixstudio.com/admin-backend/_functions/clients?secret=${{ secrets.WC_SECRET }}" \
@@ -49,7 +63,10 @@ jobs:
             -d "{\"slug\": \"${{ steps.config.outputs.slug }}\", \"status\": \"deployed\", \"demoUrl\": \"https://demo.wixcrafters.com/${{ steps.config.outputs.slug }}\"}"
 
       - name: Send email notification
-        run: node .github/scripts/send-email.js
+        if: steps.check.outputs.has_project == 'true'
+        run: |
+          npm install googleapis
+          node .github/scripts/send-email.js
         env:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
@@ -57,4 +74,3 @@ jobs:
           CLIENT_NAME: ${{ steps.config.outputs.clientName }}
           CLIENT_EMAIL: ${{ steps.config.outputs.clientEmail }}
           CLIENT_SLUG: ${{ steps.config.outputs.slug }}
-          CLIENT_SITE_URL: ${{ steps.config.outputs.siteUrl }}
