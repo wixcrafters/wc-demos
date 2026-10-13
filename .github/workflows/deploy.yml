@@ -1,0 +1,60 @@
+name: Build, Deploy & Notify
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Read client config
+        id: config
+        run: |
+          echo "slug=$(node -e "console.log(require('./client.config.json').slug)")" >> $GITHUB_OUTPUT
+          echo "clientName=$(node -e "console.log(require('./client.config.json').clientName)")" >> $GITHUB_OUTPUT
+          echo "clientEmail=$(node -e "console.log(require('./client.config.json').clientEmail)")" >> $GITHUB_OUTPUT
+          echo "siteUrl=$(node -e "console.log(require('./client.config.json').siteUrl)")" >> $GITHUB_OUTPUT
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} dist/ \
+            --name wc-demos \
+            --yes
+        env:
+          VERCEL_ORG_ID: team_c8kFcXdeNjCsG0JoLm9fR4K8
+          VERCEL_PROJECT_ID: prj_M4qTz1BQjZGjkeBUdLZG9Sz1q9fO
+
+      - name: Update Wix CMS
+        run: |
+          curl -s -X PATCH \
+            "https://wixcrafter.wixstudio.com/admin-backend/_functions/clients?secret=${{ secrets.WC_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"slug\": \"${{ steps.config.outputs.slug }}\", \"status\": \"deployed\", \"demoUrl\": \"https://demo.wixcrafters.com/${{ steps.config.outputs.slug }}\"}"
+
+      - name: Send email notification
+        run: node .github/scripts/send-email.js
+        env:
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          CLIENT_NAME: ${{ steps.config.outputs.clientName }}
+          CLIENT_EMAIL: ${{ steps.config.outputs.clientEmail }}
+          CLIENT_SLUG: ${{ steps.config.outputs.slug }}
+          CLIENT_SITE_URL: ${{ steps.config.outputs.siteUrl }}
