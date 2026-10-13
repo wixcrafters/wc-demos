@@ -55,7 +55,7 @@ jobs:
         if: steps.check.outputs.has_project == 'true'
         run: |
           npm install googleapis
-          node .github/scripts/send-email.js
+          node .github/scripts/send-email.cjs
         env:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
