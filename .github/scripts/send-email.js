@@ -6,7 +6,7 @@ const {
   GMAIL_REFRESH_TOKEN,
   CLIENT_NAME,
   CLIENT_EMAIL,
-  CLIENT_SLUG,
+  CLIENT_SLUG
 } = process.env;
 
 const DEMO_URL = `https://demo.wixcrafters.com/${CLIENT_SLUG}`;
@@ -34,13 +34,9 @@ async function send() {
     GMAIL_CLIENT_SECRET,
     'urn:ietf:wg:oauth:2.0:oob'
   );
-
   oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
-
   const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-
   const subject = `We built a free website preview for ${CLIENT_NAME}`;
-
   const body = [
     `From: Wix Crafters <wixctesting@gmail.com>`,
     `To: wixctesting@gmail.com`,
@@ -59,14 +55,11 @@ async function send() {
     ``,
     outreachEmail
   ].join('\n');
-
   const encoded = Buffer.from(body).toString('base64url');
-
   await gmail.users.messages.send({
     userId: 'me',
     requestBody: { raw: encoded }
   });
-
   console.log('Email sent to wixctesting@gmail.com');
 }
 
